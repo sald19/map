@@ -1,0 +1,63 @@
+doctype 5
+html(lang='es')
+    head
+        meta(charset='utf-8')
+        title Mapa
+        meta(name="viewport", content="width=device-width, initial-scale=1, maximum-scale=1")
+        link(rel="stylesheet", href="css/reset.css")
+        link(rel="stylesheet", href="css/style.css")
+    body
+        #geolocation_map
+        ul#menu
+            li#localitation
+                
+            li#addmarker
+            li#search
+                input(type="text", name="user")
+                span
+        script(src="/socket.io/socket.io.js")
+        script(src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js")
+        script(src="http://maps.googleapis.com/maps/api/js?key=AIzaSyCGMTquwdBTySuSRiQxNTceFgxBFOBn0ys&sensor=true")
+        script(src="js/handlebars.js")
+        script(src="js/gmaps.js")
+        script.
+            var map
+            , websocket = io.connect();
+
+            $(document).ready(function(){
+
+                var map = new GMaps({
+                    el: '#geolocation_map',
+                    lat: 12.1363889,
+                    lng: -86.2513889,
+                    zoom:13,
+                    disableDefaultUI: true,
+                    click: function (e) {
+                        position = {'lat': e.latLng.ob, 'lng': e.latLng.pb}
+                        websocket.emit('newMarker', position);
+                        map.addMarker({
+                            lat: position.lat,
+                            lng: position.lng,
+                        });
+                        console.log(e.latLng);
+                    },
+                });
+                map.setCenter(12.1363889, -86.2513889)
+                $("#localitation").click( function() {
+                    GMaps.geolocate({
+                        success: function(position){
+                            map.setCenter(position.coords.latitude, position.coords.longitude);
+                            map.addMarker({
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude,
+                            });
+                        },
+                        error: function(error){
+                            alert('Geolocation failed: '+error.message);
+                        },
+                        not_supported: function(){
+                            alert("Your browser does not support geolocation");
+                        }
+                    });
+                });
+            });
